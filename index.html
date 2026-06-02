@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>D Universe</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    overflow:hidden;
+    background:black;
+}
+
+canvas{
+    display:block;
+}
+
+.title{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    font-size:40px;
+    letter-spacing:10px;
+    font-family:Arial;
+    opacity:1;
+    transition:2s;
+}
+#sceneContainer{
+
+    position:absolute;
+
+    top:50%;
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    width:80%;
+
+    max-width:800px;
+    height:500px;
+    text-align:center;
+
+    color:white;
+
+    z-index:100;
+}
+
+.scene{
+
+    position:absolute;
+
+    width:100%;
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:all 1s ease;
+}
+
+.scene.active{
+
+    opacity:1;
+
+    pointer-events:auto;
+}
+
+.scene h1{
+
+    margin-bottom:30px;
+
+    font-size:48px;
+}
+
+.scene p{
+
+    line-height:2;
+
+    font-size:20px;
+}
+
+button{
+
+    margin-top:40px;
+
+    padding:15px 40px;
+
+    border:none;
+
+    border-radius:50px;
+
+    cursor:pointer;
+
+    font-size:18px;
+}
+.systemTitle{
+
+    color:#00ff99;
+
+    text-shadow:
+    0 0 10px #00ff99,
+    0 0 20px #00ff99;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="title" id="title">
+D UNIVERSE
+</div>
+<div id="sceneContainer">
+
+    <div class="scene active">
+
+        <h1>D Universe</h1>
+
+        <p>
+        正在连接观测系统...
+        </p >
+
+        <button onclick="nextScene()">
+        开始任务
+        </button>
+
+    </div>
+
+    <div class="scene">
+
+        <h1>相遇概率</h1>
+
+        <p>
+        宇宙很大。<br>
+        网络也很大。<br>
+        每天都有无数人相遇。<br><br>
+
+        我原本以为。<br>
+        我们的相遇。<br>
+        只是一次随机事件。
+        </p >
+
+        <button onclick="nextScene()">
+        继续观测
+        </button>
+
+    </div>
+
+    <div class="scene">
+
+        <h1>组队记录</h1>
+
+        <p>
+        一起跳伞 ✓<br>
+        一起搜物资 ✓<br>
+        一起跑毒 ✓<br>
+        一起守空投 ✓<br>
+        一起聊天 ✓
+        </p >
+
+        <button onclick="nextScene()">
+        查看记录
+        </button>
+
+    </div>
+
+   <div class="scene">
+
+    <h1 id="airdropTitle">
+    发现空投
+    </h1>
+
+    <p id="airdropText">
+
+    点击下方按钮开启空投
+
+    </p >
+
+    <button onclick="nextAirdropStep()">
+
+    开启空投
+
+    </button>
+
+</div>
+
+    <div class="scene">
+
+        <h1 class="systemTitle">异常日志</h1>
+
+        <p>
+        检测到异常行为<br><br>
+
+        频繁关注同一目标<br>
+        经常期待收到消息<br>
+        会反复回忆相处细节<br><br>
+
+        诊断结果：<br>
+        已确认喜欢
+        </p >
+
+        <button onclick="nextScene()">
+        继续
+        </button>
+
+    </div>
+
+    <div class="scene">
+
+        <h1>姜泡</h1>
+
+        <p>
+        我们没有见过面。<br><br>
+
+        也没有电影里的轰轰烈烈。<br><br>
+
+        只是一起打过很多游戏。<br><br>
+
+        可是不知道从什么时候开始。<br><br>
+
+        你变成了我每天都会想起的人。
+        </p >
+
+        <button onclick="nextScene()">
+        最终申请
+        </button>
+
+    </div>
+
+   <div class="scene">
+
+    <h1>申请提交</h1>
+
+    <p>
+
+    正在连接目标人物...<br><br>
+
+    连接成功 ✓<br><br>
+
+    申请人：张家麒<br><br>
+
+    申请对象：姜泡<br><br>
+
+    申请内容：<br>
+
+    从队友升级为男朋友
+
+    </p >
+
+    <button onclick="showConfession()">
+
+    确认提交
+
+    </button>
+
+</div>
+
+</div>
+
+<canvas id="canvas"></canvas>
+<audio id="bgm">
+
+    <source src="music.mp3" type="audio/mpeg">
+
+</audio>
+<script>
+    setTimeout(()=>{
+
+    document.getElementById("title")
+    .style.opacity = "0";
+
+},3000);
+
+const canvas =
+document.getElementById("canvas");
+
+const ctx =
+canvas.getContext("2d");
+
+canvas.width =
+window.innerWidth;
+
+canvas.height =
+window.innerHeight;
+
+const stars = [];
+const meteors=[];
+let mouseX = 0;
+let mouseY = 0;
+
+
+
+/* 近景 */
+
+for(let i=0;i<500;i++){
+
+    stars.push({
+
+        x:Math.random()*canvas.width,
+
+        y:Math.random()*canvas.height,
+
+        size:3,
+
+        speed:1.2,
+
+        depth:3
+
+    });
+
+}
+
+/* 中景 */
+
+for(let i=0;i<1000;i++){
+
+    stars.push({
+
+        x:Math.random()*canvas.width,
+
+        y:Math.random()*canvas.height,
+
+        size:2,
+
+        speed:0.5,
+
+        depth:2
+
+    });
+
+}
+
+/* 远景 */
+
+for(let i=0;i<2000;i++){
+
+    stars.push({
+
+        x:Math.random()*canvas.width,
+
+        y:Math.random()*canvas.height,
+
+        size:1,
+
+        speed:0.2,
+
+        depth:1
+
+    });
+
+
+}
+let opacity=0;
+function createMeteor(){
+
+    meteors.push({
+
+        x: Math.random() * canvas.width,
+
+        y: -100,
+
+        length: 100 + Math.random() * 100,
+
+        speed: 10 + Math.random() * 10,
+
+        life: 100
+
+    });
+
+}
+function animate(){
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    opacity += 0.003;
+
+if(opacity > 1){
+    opacity = 1;
+}
+
+ctx.fillStyle =
+`rgba(255,255,255,${opacity})`;
+
+    stars.forEach(star=>{
+
+    star.y += star.speed;
+
+    if(star.y > canvas.height){
+
+        star.y = 0;
+
+        star.x =
+        Math.random()*canvas.width;
+    }
+
+    ctx.beginPath();
+
+    ctx.arc(
+    star.x + mouseX * (star.depth * 0.4),
+    star.y + mouseY * (star.depth * 0.4),
+    star.size,
+    0,
+    Math.PI*2
+);
+
+    ctx.fill();
+
+});
+for(let i = meteors.length - 1; i >= 0; i--){
+
+    const m = meteors[i];
+
+    ctx.beginPath();
+
+    ctx.moveTo(m.x, m.y);
+
+    ctx.lineTo(
+        m.x - m.length * 0.5,
+        m.y - m.length
+    );
+
+    ctx.strokeStyle =
+    "rgba(255,255,255,0.8)";
+
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+
+    m.x += m.speed;
+    m.y += m.speed;
+
+    m.life--;
+
+    if(m.life <= 0){
+
+        meteors.splice(i,1);
+
+    }
+
+}
+
+    requestAnimationFrame(
+        animate
+    );
+}
+function typeWriter(element,text,speed=50){
+
+    element.innerHTML = "";
+
+    let i = 0;
+
+    const timer = setInterval(()=>{
+
+        element.innerHTML += text.charAt(i);
+
+        i++;
+
+        if(i >= text.length){
+
+            clearInterval(timer);
+
+        }
+
+    },speed);
+
+}
+let currentScene = 0;
+
+const scenes =
+document.querySelectorAll(".scene");
+const bgm =
+document.getElementById("bgm");
+let airdropStep = 0;
+
+function nextAirdropStep(){
+
+    const title =
+    document.getElementById("airdropTitle");
+
+    const text =
+    document.getElementById("airdropText");
+
+    airdropStep++;
+
+    if(airdropStep === 1){
+
+        title.innerHTML =
+        "空投开启中";
+
+        text.innerHTML =
+        "正在扫描物资...";
+
+    }
+
+    else if(airdropStep === 2){
+
+        title.innerHTML =
+        "AUG";
+
+        text.innerHTML =
+        "获得稀有物品";
+
+    }
+
+    else if(airdropStep === 3){
+
+        title.innerHTML =
+        "系统记录";
+
+        text.innerHTML =
+        "目标人物未拾取";
+
+    }
+
+    else if(airdropStep === 4){
+
+        title.innerHTML =
+        "系统记录";
+
+        text.innerHTML =
+        "目标人物已赠送";
+
+    }
+
+    else if(airdropStep === 5){
+
+        title.innerHTML =
+        "那个空投";
+
+        text.innerHTML =
+
+        `我已经忘记那局最后有没有吃鸡。<br><br>
+
+        但我记得。<br><br>
+
+        你把AUG给了我。`;
+
+    }
+
+    else if(airdropStep === 6){
+
+        nextScene();
+
+    }
+
+}
+
+function nextScene(){
+
+    scenes[currentScene]
+    .classList.remove("active");
+
+    setTimeout(()=>{
+
+        currentScene++;
+        if(currentScene === 4){
+
+    bgm.volume = 1;
+
+    bgm.play();
+
+}
+
+        if(currentScene < scenes.length){
+
+            scenes[currentScene]
+            .classList.add("active");
+
+            const title =
+            scenes[currentScene]
+            .querySelector("h1");
+
+            if(title){
+
+                const text =
+                title.innerText;
+typeWriter
+                (
+                    title,
+                    text,
+                    220
+                );
+
+            }
+
+        }
+
+    },800);
+
+}
+animate();
+setInterval(()=>{
+
+    createMeteor();
+
+},4000);
+window.addEventListener("mousemove",(e)=>{
+
+    mouseX =
+    (e.clientX - canvas.width/2) * 0.02;
+
+    mouseY =
+    (e.clientY - canvas.height/2) * 0.02;
+
+});
+
+window.addEventListener(
+"resize",
+()=>{
+
+    canvas.width =
+    window.innerWidth;
+
+    canvas.height =
+    window.innerHeight;
+
+});
+function showEnding(){
+
+    document.querySelector(".scene.active").innerHTML = `
+
+    <h1>Mission Complete</h1>
+
+    <p>
+
+    获得一次认真表达自己的勇气。<br><br>
+
+    获得和姜泡的未来（希望如此）。
+
+    </p >
+
+    `;
+
+}
+function showConfession(){
+
+document.querySelector(".scene.active").innerHTML = `
+
+<h1>姜泡。</h1>
+
+<h2 style="
+font-size:48px;
+margin-top:100px;
+color:white;
+">
+
+你愿意成为我的女朋友吗？
+
+</h2>
+
+`;
+
+}
+
+</script>
+
+</body>
+
+</html>
